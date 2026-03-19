@@ -1,0 +1,14 @@
+body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+.container { max-width: 1200px; margin: auto; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+h1, h2 { color: #333; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+th { background-color: #f2f2f2; }
+button { background-color: #4CAF50; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; }
+button:hover { background-color: #45a049; }
+.step-card { border: 1px solid #ccc; border-radius: 5px; padding: 15px; margin: 10px 0; transition: all 0.3s; }
+.step-pending { background-color: #e0e0e0; }
+.step-in_progress { background-color: #ffd966; animation: pulse 1s infinite; }
+.step-completed { background-color: #b6d7a8; }
+.step-failed { background-color: #f4cccc; }
+@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
