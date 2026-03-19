@@ -330,7 +330,7 @@
                 connectWebSocket();
                 loadExecution();
             } else {
-                showError('No execution ID provided');
+                // showError('No execution ID provided');
             }
         });
 
@@ -397,7 +397,7 @@
                     startDurationTimer();
                 }
             } catch (error) {
-                showError('Failed to load execution: ' + error.message);
+                // showError('Failed to load execution: ' + error.message);
             }
         }
 

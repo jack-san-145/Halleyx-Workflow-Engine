@@ -360,7 +360,7 @@
                 loadWorkflow();
                 loadSteps();
             } else {
-                showError('No workflow ID provided');
+                // showError('No workflow ID provided');
             }
         });
 
@@ -373,7 +373,7 @@
                 workflow = await response.json();
                 renderWorkflow();
             } catch (error) {
-                showError('Failed to load workflow: ' + error.message);
+                // showError('Failed to load workflow: ' + error.message);
             }
         }
 
@@ -385,7 +385,7 @@
                 steps = await response.json();
                 renderSteps();
             } catch (error) {
-                showError('Failed to load steps: ' + error.message);
+                // showError('Failed to load steps: ' + error.message);
             }
         }
 
@@ -415,7 +415,7 @@
                 showSuccess('Step added successfully!');
 
             } catch (error) {
-                showError('Failed to add step: ' + error.message);
+                // showError('Failed to add step: ' + error.message);
             }
         }
 
@@ -444,7 +444,7 @@
                 showSuccess('Rule added successfully!');
 
             } catch (error) {
-                showError('Failed to add rule: ' + error.message);
+                // showError('Failed to add rule: ' + error.message);
             }
         }
 

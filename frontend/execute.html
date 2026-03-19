@@ -243,7 +243,7 @@
                 workflows = await response.json();
                 populateWorkflowSelector();
             } catch (error) {
-                showError('Failed to load workflows: ' + error.message);
+                console.log('Failed to load workflows: ' + error.message);
             }
         }
 
@@ -288,7 +288,7 @@
                 form.style.display = 'block';
             } catch (error) {
                 loading.style.display = 'none';
-                showError('Failed to load workflow: ' + error.message);
+                console.log('Failed to load workflow: ' + error.message);
             }
         }
 
@@ -451,7 +451,7 @@
                 }, 1500);
 
             } catch (error) {
-                showError('Failed to start execution: ' + error.message);
+                // showError('Failed to start execution: ' + error.message);
             } finally {
                 spinner.style.display = 'none';
                 btnText.innerText = 'Start Execution';

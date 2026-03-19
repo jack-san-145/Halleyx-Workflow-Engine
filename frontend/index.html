@@ -301,7 +301,7 @@
                 table.style.display = 'table';
             } catch (error) {
                 loading.style.display = 'none';
-                showError('Failed to load workflows: ' + error.message);
+                // showError('Failed to load workflows: ' + error.message);
             }
         }
 
@@ -344,7 +344,7 @@
                 }, 1000);
 
             } catch (error) {
-                showError('Failed to create workflow: ' + error.message);
+                // showError('Failed to create workflow: ' + error.message);
             } finally {
                 spinner.style.display = 'none';
                 btnText.innerText = '+ Create New Workflow';
