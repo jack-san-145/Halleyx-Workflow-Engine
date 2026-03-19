@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Halleyx Workflow Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            padding: 30px;
+        }
+        .actions {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        .workflows-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .workflows-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .workflows-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            color: #333;
+        }
+        .workflows-table tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+        .action-btn.view {
+            background: #17a2b8;
+        }
+        .action-btn.execute {
+            background: #28a745;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(110%);
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="nav-links">
+                <a href="/index_page" class="nav-link">🏠 Home</a>
+                <a href="/execute_page" class="nav-link">▶️ Execute</a>
+                <a href="/workflow_detail_page" class="nav-link">📋 Workflow Detail</a>
+                <a href="/execution_page" class="nav-link">📊 Executions</a>
+            </div>
+            <h1>🚀 Halleyx Workflow Engine</h1>
+            <p>Manage and execute your Docker-based workflows</p>
+        </div>
+        <div class="content">
+            <div class="actions">
+                <button class="btn btn-primary" onclick="showCreateWorkflowForm()">
+                    <span class="spinner" style="display: none;" id="createSpinner"></span>
+                    <span id="createText">+ Create New Workflow</span>
+                </button>
+                <button class="btn btn-secondary" onclick="refreshWorkflows()">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <div id="errorMessage" class="error"></div>
+            <div id="successMessage" class="success"></div>
+
+            <!-- Create Workflow Form (hidden by default) -->
+            <div id="createForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 20px; color: #333;">Create New Workflow</h3>
+                <form id="workflowForm" onsubmit="createWorkflow(event)">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Workflow Name:</label>
+                        <input type="text" id="workflowName" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Input Schema (JSON):</label>
+                        <textarea id="inputSchema" rows="8" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;">{
+  "code": {
+    "type": "string",
+    "required": true,
+    "description": "Source code to compile and run"
+  }
+}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">Create Workflow</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideCreateForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Workflows List -->
+            <div id="workflowsList">
+                <div class="loading" id="loading">Loading workflows...</div>
+                <table class="workflows-table" id="workflowsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Version</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workflowsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let workflows = [];
+        const workflowId = "{{.WorkflowID}}";
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshWorkflows();
+        });
+
+        // Show/Hide Functions
+        function showCreateWorkflowForm() {
+            document.getElementById('createForm').style.display = 'block';
+            document.getElementById('createText').innerText = 'Creating...';
+        }
+
+        function hideCreateForm() {
+            document.getElementById('createForm').style.display = 'none';
+            document.getElementById('createText').innerText = '+ Create New Workflow';
+            document.getElementById('workflowForm').reset();
+        }
+
+        // API Calls
+        async function refreshWorkflows() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('workflowsTable');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            errorDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/workflows');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                workflows = await response.json();
+                renderWorkflows();
+                
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (error) {
+                loading.style.display = 'none';
+                showError('Failed to load workflows: ' + error.message);
+            }
+        }
+
+        async function createWorkflow(event) {
+            event.preventDefault();
+            
+            const spinner = document.getElementById('createSpinner');
+            const btnText = document.getElementById('createText');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            spinner.style.display = 'inline-block';
+            btnText.innerText = 'Creating...';
+            errorDiv.style.display = 'none';
+
+            try {
+                const name = document.getElementById('workflowName').value;
+                const inputSchema = JSON.parse(document.getElementById('inputSchema').value);
+
+                const response = await fetch('/workflows', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        input_schema: inputSchema
+                    })
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const workflow = await response.json();
+                showSuccess('Workflow created successfully!');
+                hideCreateForm();
+                refreshWorkflows();
+                
+                // Redirect to workflow detail after 1 second
+                setTimeout(() => {
+                    window.location.href = `/workflow_detail_page?id=${workflow.id}`;
+                }, 1000);
+
+            } catch (error) {
+                showError('Failed to create workflow: ' + error.message);
+            } finally {
+                spinner.style.display = 'none';
+                btnText.innerText = '+ Create New Workflow';
+            }
+        }
+
+        function renderWorkflows() {
+            const tbody = document.getElementById('workflowsBody');
+            tbody.innerHTML = '';
+
+            workflows.forEach(wf => {
+                const row = document.createElement('tr');
+                const createdDate = new Date(wf.created_at).toLocaleDateString();
+                
+                row.innerHTML = `
+                    <td><strong>${wf.name}</strong></td>
+                    <td>v${wf.version}</td>
+                    <td>
+                        <span class="status-badge ${wf.is_active ? 'status-active' : 'status-inactive'}">
+                            ${wf.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>${createdDate}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewWorkflow('${wf.id}')">👁️ View</button>
+                            <button class="action-btn execute" onclick="executeWorkflow('${wf.id}')">▶️ Execute</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function viewWorkflow(id) {
+            window.location.href = `/workflow_detail_page?id=${id}`;
+        }
+
+        function executeWorkflow(id) {
+            window.location.href = `/execute_page?workflow_id=${id}`;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
