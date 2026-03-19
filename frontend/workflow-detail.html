@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workflow Details - Halleyx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+        .back-btn:hover {
+            opacity: 1;
+        }
+        .nav-links {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .workflow-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+        .steps-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .step-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .step-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .step-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .type-task { background: #cff4fc; color: #055160; }
+        .type-approval { background: #fff3cd; color: #856404; }
+        .type-notification { background: #d1e7dd; color: #0f5132; }
+        .step-order {
+            background: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+        .metadata {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+        }
+        .rules-section {
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+        }
+        .rules-list {
+            margin-top: 15px;
+        }
+        .rule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .rule-condition {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/index_page" class="back-btn">← Back to Workflows</a>
+            <div class="nav-links">
+                <a href="/execute_page" class="nav-link">▶️ Execute</a>
+                <a href="/execution_page" class="nav-link">📊 Executions</a>
+            </div>
+            <h1 id="workflowName">Loading...</h1>
+            <div class="workflow-meta">
+                <span>ID: <span id="workflowId"></span></span>
+                <span>Version: <span id="workflowVersion"></span></span>
+                <span>Status: <span id="workflowStatus"></span></span>
+            </div>
+        </div>
+        <div class="content">
+            <div id="errorMessage" class="error"></div>
+
+            <!-- Steps Section -->
+            <div class="section">
+                <h2>
+                    Steps
+                    <button class="btn btn-primary" onclick="showAddStepModal()">+ Add Step</button>
+                </h2>
+                <div id="stepsContainer" class="steps-grid">
+                    <div class="loading">Loading steps...</div>
+                </div>
+            </div>
+
+            <!-- Input Schema Section -->
+            <div class="section">
+                <h2>Input Schema</h2>
+                <pre id="inputSchema" class="metadata">Loading...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Step Modal -->
+    <div id="addStepModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideAddStepModal()">&times;</span>
+            <h2 style="margin-bottom: 20px;">Add New Step</h2>
+            <form id="addStepForm" onsubmit="addStep(event)">
+                <div class="form-group">
+                    <label>Step Name:</label>
+                    <input type="text" id="stepName" required placeholder="e.g., Compile Code">
+                </div>
+                <div class="form-group">
+                    <label>Step Type:</label>
+                    <select id="stepType" required>
+                        <option value="task">Task (Docker)</option>
+                        <option value="approval">Approval</option>
+                        <option value="notification">Notification</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Order:</label>
+                    <input type="number" id="stepOrder" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Metadata (JSON):</label>
+                    <textarea id="stepMetadata" rows="8" required>{
+  "image": "gcc:latest",
+  "workdir": "/workspace",
+  "volumes": ["/tmp/exec-{{"{{"}}execution_id{{"}}"}}:/workspace"],
+  "command": ["sh", "-c", "gcc main.c -o app; echo $? > /workspace/exitcode"],
+  "timeout": 60
+}</textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="hideAddStepModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Step</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Rule Modal -->
+    <div id="addRuleModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideAddRuleModal()">&times;</span>
+            <h2 style="margin-bottom: 20px;">Add Rule to Step</h2>
+            <form id="addRuleForm" onsubmit="addRule(event)">
+                <input type="hidden" id="ruleStepId">
+                <div class="form-group">
+                    <label>Condition:</label>
+                    <input type="text" id="ruleCondition" required placeholder="e.g., exit_code == 0">
+                    <small style="color: #666;">Use "DEFAULT" for fallback rule</small>
+                </div>
+                <div class="form-group">
+                    <label>Next Step ID:</label>
+                    <select id="ruleNextStepId">
+                        <option value="">(End Workflow)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority:</label>
+                    <input type="number" id="rulePriority" value="100" min="1">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="hideAddRuleModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let workflowId = null;
+        let workflow = null;
+        let steps = [];
+        let currentStepForRule = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            workflowId = urlParams.get('id');
+            if (workflowId) {
+                loadWorkflow();
+                loadSteps();
+            } else {
+                showError('No workflow ID provided');
+            }
+        });
+
+        // API Calls
+        async function loadWorkflow() {
+            try {
+                const response = await fetch(`/workflows/${workflowId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                workflow = await response.json();
+                renderWorkflow();
+            } catch (error) {
+                showError('Failed to load workflow: ' + error.message);
+            }
+        }
+
+        async function loadSteps() {
+            try {
+                const response = await fetch(`/workflows/${workflowId}/steps`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                steps = await response.json();
+                renderSteps();
+            } catch (error) {
+                showError('Failed to load steps: ' + error.message);
+            }
+        }
+
+        async function addStep(event) {
+            event.preventDefault();
+            
+            try {
+                const stepData = {
+                    name: document.getElementById('stepName').value,
+                    step_type: document.getElementById('stepType').value,
+                    order: parseInt(document.getElementById('stepOrder').value),
+                    metadata: JSON.parse(document.getElementById('stepMetadata').value)
+                };
+
+                const response = await fetch(`/workflows/${workflowId}/steps`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(stepData)
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                hideAddStepModal();
+                loadSteps();
+                showSuccess('Step added successfully!');
+
+            } catch (error) {
+                showError('Failed to add step: ' + error.message);
+            }
+        }
+
+        async function addRule(event) {
+            event.preventDefault();
+            
+            try {
+                const ruleData = {
+                    condition: document.getElementById('ruleCondition').value,
+                    next_step_id: document.getElementById('ruleNextStepId').value || null,
+                    priority: parseInt(document.getElementById('rulePriority').value)
+                };
+
+                const response = await fetch(`/steps/${currentStepForRule}/rules`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(ruleData)
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                hideAddRuleModal();
+                loadSteps(); // Refresh to show new rules
+                showSuccess('Rule added successfully!');
+
+            } catch (error) {
+                showError('Failed to add rule: ' + error.message);
+            }
+        }
+
+        async function loadRules(stepId) {
+            try {
+                const response = await fetch(`/steps/${stepId}/rules`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Failed to load rules:', error);
+                return [];
+            }
+        }
+
+        // Render Functions
+        function renderWorkflow() {
+            document.getElementById('workflowName').innerText = workflow.name;
+            document.getElementById('workflowId').innerText = workflow.id;
+            document.getElementById('workflowVersion').innerText = workflow.version;
+            document.getElementById('workflowStatus').innerText = workflow.is_active ? 'Active' : 'Inactive';
+            document.getElementById('inputSchema').innerText = JSON.stringify(workflow.input_schema, null, 2);
+        }
+
+        async function renderSteps() {
+            const container = document.getElementById('stepsContainer');
+            
+            if (steps.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">No steps yet. Click "Add Step" to create one.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            for (const step of steps) {
+                const rules = await loadRules(step.id);
+                const stepCard = createStepCard(step, rules);
+                container.appendChild(stepCard);
+            }
+        }
+
+        function createStepCard(step, rules) {
+            const card = document.createElement('div');
+            card.className = 'step-card';
+            
+            const typeClass = `type-${step.step_type}`;
+            const metadata = JSON.stringify(step.metadata, null, 2);
+            
+            let rulesHtml = '';
+            if (rules && rules.length > 0) {
+                rulesHtml = `
+                    <div class="rules-section">
+                        <h4 style="margin-bottom: 10px;">Rules</h4>
+                        <div class="rules-list">
+                            ${rules.map(rule => `
+                                <div class="rule-item">
+                                    <span class="rule-condition">${rule.condition}</span>
+                                    <span>→ ${rule.next_step_id ? 'Next: ' + rule.next_step_id.substring(0,8) + '...' : 'End'}</span>
+                                    <span style="color: #666;">Priority: ${rule.priority}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="step-header">
+                    <div>
+                        <h3 style="margin-bottom: 5px;">${step.name}</h3>
+                        <span class="step-type ${typeClass}">${step.step_type}</span>
+                        <span class="step-order">Order: ${step.order}</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="showAddRuleModal('${step.id}')">➕ Add Rule</button>
+                    </div>
+                </div>
+                <div class="metadata">${metadata}</div>
+                ${rulesHtml}
+            `;
+            
+            return card;
+        }
+
+        // Modal Functions
+        function showAddStepModal() {
+            document.getElementById('addStepModal').style.display = 'block';
+        }
+
+        function hideAddStepModal() {
+            document.getElementById('addStepModal').style.display = 'none';
+            document.getElementById('addStepForm').reset();
+        }
+
+        async function showAddRuleModal(stepId) {
+            currentStepForRule = stepId;
+            document.getElementById('ruleStepId').value = stepId;
+            
+            // Populate next step dropdown
+            const select = document.getElementById('ruleNextStepId');
+            select.innerHTML = '<option value="">(End Workflow)</option>';
+            
+            steps.forEach(step => {
+                if (step.id !== stepId) {
+                    const option = document.createElement('option');
+                    option.value = step.id;
+                    option.textContent = `${step.name} (Order: ${step.order})`;
+                    select.appendChild(option);
+                }
+            });
+            
+            document.getElementById('addRuleModal').style.display = 'block';
+        }
+
+        function hideAddRuleModal() {
+            document.getElementById('addRuleModal').style.display = 'none';
+            document.getElementById('addRuleForm').reset();
+            currentStepForRule = null;
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const stepModal = document.getElementById('addStepModal');
+            const ruleModal = document.getElementById('addRuleModal');
+            if (event.target == stepModal) {
+                hideAddStepModal();
+            }
+            if (event.target == ruleModal) {
+                hideAddRuleModal();
+            }
+        }
+
+        // Utility Functions
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            alert(message);
+        }
+    </script>
+</body>
+</html>
