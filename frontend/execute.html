@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Execute Workflow - Halleyx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+        .back-btn:hover {
+            opacity: 1;
+        }
+        .nav-links {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .workflow-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: monospace;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        .field-hint {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+        .workflow-selector {
+            margin-bottom: 20px;
+        }
+        .workflow-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/index_page" class="back-btn">← Back to Workflows</a>
+            <div class="nav-links">
+                <a href="/workflow_detail_page" class="nav-link">📋 Workflow Detail</a>
+                <a href="/execution_page" class="nav-link">📊 Executions</a>
+            </div>
+            <h1>Execute Workflow</h1>
+        </div>
+        <div class="content">
+            <div id="errorMessage" class="error"></div>
+            <div id="successMessage" class="success"></div>
+            
+            <!-- Workflow Selector -->
+            <div class="workflow-selector">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Workflow:</label>
+                <select id="workflowSelector" onchange="loadSelectedWorkflow()">
+                    <option value="">-- Select a workflow --</option>
+                </select>
+            </div>
+            
+            <div id="workflowInfo" class="workflow-info" style="display: none;">
+                <h2 id="workflowName" style="margin-bottom: 10px;"></h2>
+                <p><strong>ID:</strong> <span id="workflowId"></span></p>
+                <p><strong>Version:</strong> <span id="workflowVersion"></span></p>
+            </div>
+
+            <div class="loading" id="loading">Loading workflow...</div>
+
+            <form id="executionForm" style="display: none;" onsubmit="startExecution(event)">
+                <div id="formFields"></div>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span class="spinner" style="display: none;" id="submitSpinner"></span>
+                    <span id="submitText">Start Execution</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let workflows = [];
+        let currentWorkflow = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWorkflows();
+            
+            // Check if workflow_id is in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const workflowId = urlParams.get('workflow_id');
+            if (workflowId) {
+                setTimeout(() => {
+                    document.getElementById('workflowSelector').value = workflowId;
+                    loadSelectedWorkflow();
+                }, 500);
+            }
+        });
+
+        async function loadWorkflows() {
+            try {
+                const response = await fetch('/workflows');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                workflows = await response.json();
+                populateWorkflowSelector();
+            } catch (error) {
+                showError('Failed to load workflows: ' + error.message);
+            }
+        }
+
+        function populateWorkflowSelector() {
+            const select = document.getElementById('workflowSelector');
+            select.innerHTML = '<option value="">-- Select a workflow --</option>';
+            
+            workflows.forEach(wf => {
+                const option = document.createElement('option');
+                option.value = wf.id;
+                option.textContent = `${wf.name} (v${wf.version})`;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadSelectedWorkflow() {
+            const workflowId = document.getElementById('workflowSelector').value;
+            if (!workflowId) {
+                document.getElementById('workflowInfo').style.display = 'none';
+                document.getElementById('executionForm').style.display = 'none';
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const workflowInfo = document.getElementById('workflowInfo');
+            const form = document.getElementById('executionForm');
+            
+            loading.style.display = 'block';
+            workflowInfo.style.display = 'none';
+            form.style.display = 'none';
+
+            try {
+                const response = await fetch(`/workflows/${workflowId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                currentWorkflow = await response.json();
+                renderWorkflowInfo();
+                buildForm();
+                
+                loading.style.display = 'none';
+                workflowInfo.style.display = 'block';
+                form.style.display = 'block';
+            } catch (error) {
+                loading.style.display = 'none';
+                showError('Failed to load workflow: ' + error.message);
+            }
+        }
+
+        function renderWorkflowInfo() {
+            document.getElementById('workflowName').innerText = currentWorkflow.name;
+            document.getElementById('workflowId').innerText = currentWorkflow.id;
+            document.getElementById('workflowVersion').innerText = currentWorkflow.version;
+        }
+
+        function buildForm() {
+            const formFields = document.getElementById('formFields');
+            const schema = currentWorkflow.input_schema || {};
+            
+            formFields.innerHTML = '<h3 style="margin-bottom: 20px;">Input Data</h3>';
+            
+            // If there is no schema, show a note and allow JSON input only
+            if (!Object.keys(schema).length) {
+                const note = document.createElement('div');
+                note.style.marginBottom = '15px';
+                note.style.color = '#555';
+                note.innerText = 'No input schema defined for this workflow. You can still provide input using the JSON textarea below.';
+                formFields.appendChild(note);
+            }
+
+            // Create form fields based on schema
+            const validFields = [];
+            for (const [fieldName, fieldConfigRaw] of Object.entries(schema)) {
+                const fieldConfig = fieldConfigRaw || {};
+                // Only treat this as an input field if the config looks like a field descriptor
+                if (typeof fieldConfig === 'object' && (fieldConfig.type || fieldConfig.required || fieldConfig.placeholder || fieldConfig.default || fieldConfig.format)) {
+                    validFields.push({ fieldName, fieldConfig });
+                }
+            }
+
+            if (!validFields.length) {
+                const note = document.createElement('div');
+                note.style.marginBottom = '15px';
+                note.style.color = '#555';
+                note.innerText = 'No valid input schema defined for this workflow. Provide payload using the JSON textarea below.';
+                formFields.appendChild(note);
+            }
+
+            for (const { fieldName, fieldConfig } of validFields) {
+                const isRequired = !!fieldConfig.required;
+
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.htmlFor = fieldName;
+                label.innerText = `${fieldName}${isRequired ? ' *' : ''}:`;
+                
+                let input;
+                if (fieldConfig.type === 'textarea' || (fieldConfig.type === 'string' && fieldConfig.format === 'textarea')) {
+                    input = document.createElement('textarea');
+                } else {
+                    input = document.createElement('input');
+                    input.type = fieldConfig.type === 'number' ? 'number' : 'text';
+                }
+                
+                input.id = fieldName;
+                input.name = fieldName;
+                input.required = isRequired;
+                
+                if (fieldConfig.default) {
+                    input.value = fieldConfig.default;
+                }
+                
+                if (fieldConfig.placeholder) {
+                    input.placeholder = fieldConfig.placeholder;
+                }
+                
+                fieldDiv.appendChild(label);
+                fieldDiv.appendChild(input);
+                
+                if (fieldConfig.description) {
+                    const hint = document.createElement('div');
+                    hint.className = 'field-hint';
+                    hint.innerText = fieldConfig.description;
+                    fieldDiv.appendChild(hint);
+                }
+                
+                formFields.appendChild(fieldDiv);
+            }
+            
+            // Add JSON input option
+            const jsonDiv = document.createElement('div');
+            jsonDiv.className = 'form-group';
+            jsonDiv.innerHTML = `
+                <label>Or paste JSON directly:</label>
+                <textarea id="jsonInput" placeholder='{"code": "int main(){return 0;}"}'></textarea>
+                <div class="field-hint">If provided, this overrides the individual fields above</div>
+            `;
+            formFields.appendChild(jsonDiv);
+        }
+
+        async function startExecution(event) {
+            event.preventDefault();
+            
+            const spinner = document.getElementById('submitSpinner');
+            const btnText = document.getElementById('submitText');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            spinner.style.display = 'inline-block';
+            btnText.innerText = 'Starting...';
+            errorDiv.style.display = 'none';
+
+            try {
+                // Build execution data
+                let data = {};
+                
+                // Check if JSON input is provided
+                const jsonInput = document.getElementById('jsonInput').value;
+                if (jsonInput.trim()) {
+                    try {
+                        data = JSON.parse(jsonInput);
+                    } catch (e) {
+                        throw new Error('Invalid JSON in textarea');
+                    }
+                } else {
+                    // Build from individual fields
+                    const schema = currentWorkflow.input_schema || {};
+                    for (const [fieldName, fieldConfig] of Object.entries(schema)) {
+                        const input = document.getElementById(fieldName);
+                        if (input) {
+                            let value = input.value;
+                            if (fieldConfig && fieldConfig.type === 'number' && value) {
+                                value = Number(value);
+                            }
+                            data[fieldName] = value;
+                        }
+                    }
+                }
+
+                // Validate required fields (if schema exists)
+                const schema = currentWorkflow.input_schema || {};
+                for (const [fieldName, fieldConfig] of Object.entries(schema)) {
+                    if (fieldConfig && fieldConfig.required && !data[fieldName]) {
+                        throw new Error(`Field "${fieldName}" is required`);
+                    }
+                }
+
+                const response = await fetch(`/workflows/${currentWorkflow.id}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: data })
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const execution = await response.json();
+                
+                // Show success and redirect to execution view
+                showSuccess('Execution started! Redirecting...');
+                
+                setTimeout(() => {
+                    window.location.href = `/execution_page?id=${execution.id}`;
+                }, 1500);
+
+            } catch (error) {
+                showError('Failed to start execution: ' + error.message);
+            } finally {
+                spinner.style.display = 'none';
+                btnText.innerText = 'Start Execution';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = message;
+            successDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
