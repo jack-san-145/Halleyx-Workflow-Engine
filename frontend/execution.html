@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Execution Details - Halleyx</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+        .back-btn:hover {
+            opacity: 1;
+        }
+        .nav-links {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
+        .execution-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .status-pending { background: #ffeeba; color: #856404; }
+        .status-in_progress { background: #b8daff; color: #004085; animation: pulse 1.5s infinite; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        .status-canceled { background: #e2e3e5; color: #383d41; }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .content {
+            padding: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .info-item strong {
+            display: block;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .info-item span {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+        }
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .step-card {
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .step-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+        }
+        .step-pending::before { background: #6c757d; }
+        .step-in_progress::before { 
+            background: #ffc107;
+            animation: progressPulse 1s infinite;
+        }
+        .step-completed::before { background: #28a745; }
+        .step-failed::before { background: #dc3545; }
+
+        @keyframes progressPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .step-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+        .step-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .step-type {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            background: #e9ecef;
+            color: #495057;
+        }
+        .step-time {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .step-logs {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .step-logs.visible {
+            display: block;
+        }
+        .toggle-logs {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .toggle-logs:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 1000;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+    
+    <div class="container">
+        <div class="header">
+            <a href="/index_page" class="back-btn">← Back to Workflows</a>
+            <div class="nav-links">
+                <a href="/execute_page" class="nav-link">▶️ Execute</a>
+                <a href="/workflow_detail_page" class="nav-link">📋 Workflow Detail</a>
+            </div>
+            <h1>Execution Details</h1>
+            <div id="executionStatus" class="execution-status status-pending">Loading...</div>
+            <div id="approveContainer" style="margin-top: 12px; display: none;">
+                <button id="approveBtn" class="btn btn-primary" onclick="approveExecution()">Approve</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>Execution Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Execution ID</strong>
+                        <span id="executionId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Workflow</strong>
+                        <span id="workflowName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Started</strong>
+                        <span id="startedAt">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Duration</strong>
+                        <span id="duration">-</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Steps</h2>
+                <div id="stepsContainer" class="steps-container">
+                    <div class="loading">Waiting for execution data...</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Execution Data</h2>
+                <pre id="executionData" style="background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto;">Loading...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let executionId = null;
+        let socket = null;
+        let execution = null;
+        let steps = [];
+        let stepsMap = new Map();
+        let stepLogs = new Map();
+        let startTime = null;
+        let workflowName = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            executionId = urlParams.get('id');
+            if (executionId) {
+                connectWebSocket();
+                loadExecution();
+            } else {
+                showError('No execution ID provided');
+            }
+        });
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = () => {
+                updateConnectionStatus('connected');
+                console.log('WebSocket connected');
+            };
+            
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+            
+            socket.onclose = () => {
+                updateConnectionStatus('disconnected');
+                console.log('WebSocket disconnected, reconnecting in 3s...');
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('disconnected');
+            };
+        }
+
+        function updateConnectionStatus(status) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `connection-status ${status}`;
+            statusEl.innerText = status === 'connected' ? '🟢 Connected' : '🔴 Disconnected';
+        }
+
+        async function loadExecution() {
+            try {
+                const response = await fetch(`/executions/${executionId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                execution = await response.json();
+                startTime = execution.started_at ? new Date(execution.started_at) : null;
+
+                // Build step logs map for quick lookup
+                stepLogs.clear();
+                if (execution.logs && Array.isArray(execution.logs)) {
+                    execution.logs.forEach(log => {
+                        if (log.step_id) {
+                            stepLogs.set(log.step_id, log);
+                        }
+                    });
+                }
+
+                // Load workflow to get name and steps
+                await loadWorkflowDetails();
+
+                renderExecution();
+                updateProgress();
+
+                // Start duration timer
+                if (execution.status === 'in_progress' || execution.status === 'pending') {
+                    startDurationTimer();
+                }
+            } catch (error) {
+                showError('Failed to load execution: ' + error.message);
+            }
+        }
+
+        async function loadWorkflowDetails() {
+            try {
+                const response = await fetch(`/workflows/${execution.workflow_id}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const workflow = await response.json();
+                workflowName = workflow.name;
+                
+                // Load steps
+                const stepsResponse = await fetch(`/workflows/${execution.workflow_id}/steps`);
+                if (stepsResponse.ok) {
+                    steps = await stepsResponse.json() || [];
+                    steps.forEach(step => stepsMap.set(step.id, step));
+                }
+            } catch (error) {
+                console.error('Failed to load workflow details:', error);
+            }
+        }
+
+        function handleWebSocketMessage(message) {
+            console.log('WebSocket message:', message);
+            
+            if (message.payload.execution_id !== executionId) return;
+            
+            switch (message.type) {
+                case 'STEP_STARTED':
+                    updateStepStatus(message.payload.step_id, 'in_progress');
+                    break;
+                case 'STEP_PENDING':
+                    updateStepStatus(message.payload.step_id, 'pending');
+                    updateExecutionStatus('pending');
+                    break;
+                case 'STEP_COMPLETED':
+                    updateStepStatus(message.payload.step_id, 'completed');
+                    if (message.payload.logs) {
+                        const existing = stepLogs.get(message.payload.step_id) || {};
+                        const next = {
+                            ...existing,
+                            ...message.payload.logs,
+                            status: 'completed',
+                        };
+                        stepLogs.set(message.payload.step_id, next);
+                        updateStepLogs(message.payload.step_id, next);
+                    }
+                    break;
+                case 'STEP_FAILED':
+                    updateStepStatus(message.payload.step_id, 'failed');
+                    if (message.payload.logs) {
+                        const existing = stepLogs.get(message.payload.step_id) || {};
+                        const next = {
+                            ...existing,
+                            ...message.payload.logs,
+                            status: 'failed',
+                        };
+                        stepLogs.set(message.payload.step_id, next);
+                        updateStepLogs(message.payload.step_id, next);
+                    }
+                    if (message.payload.error) {
+                        showStepError(message.payload.step_id, message.payload.error);
+                    }
+                    break;
+                case 'EXECUTION_COMPLETED':
+                    updateExecutionStatus('completed');
+                    break;
+            }
+            
+            updateProgress();
+        }
+
+        function updateStepLogs(stepId, logs) {
+            const logsDiv = document.getElementById(`logs-${stepId}`);
+            if (!logsDiv) return;
+            const content = logs ? JSON.stringify(logs, null, 2) : 'No logs available';
+            logsDiv.innerText = content;
+        }
+
+        function renderExecution() {
+            // Update basic info
+            document.getElementById('executionId').innerText = execution.id;
+            document.getElementById('workflowName').innerText = workflowName || execution.workflow_id;
+            document.getElementById('startedAt').innerText = execution.started_at ? 
+                new Date(execution.started_at).toLocaleString() : 'Not started';
+            
+            updateExecutionStatus(execution.status);
+            document.getElementById('executionData').innerText = JSON.stringify(execution.data, null, 2);
+            
+            // Render steps
+            renderSteps();
+        }
+
+        function renderSteps() {
+            const container = document.getElementById('stepsContainer');
+            
+            if (steps.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px;">No steps defined for this workflow</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            steps.sort((a, b) => a.order - b.order).forEach(step => {
+                const stepCard = createStepCard(step);
+                container.appendChild(stepCard);
+            });
+        }
+
+        function createStepCard(step) {
+            const card = document.createElement('div');
+            card.className = `step-card step-pending`;
+            card.id = `step-${step.id}`;
+
+            const stepStatus = getStepStatus(step.id);
+            card.classList.add(`step-${stepStatus}`);
+
+            const log = stepLogs.get(step.id) || {};
+            const startedAt = log.started_at ? new Date(log.started_at).toLocaleString() : '-';
+            const endedAt = log.ended_at ? new Date(log.ended_at).toLocaleString() : '-';
+            const evaluatedRules = log.evaluated_rules ? JSON.stringify(log.evaluated_rules, null, 2) : '';
+            const errorMessage = log.error_message || log.errorMessage || '';
+
+            card.innerHTML = `
+                <div class="step-header">
+                    <div>
+                        <span class="step-name">${step.name}</span>
+                        <span class="step-type">${step.step_type}</span>
+                    </div>
+                    <span class="step-status status-${stepStatus}">${stepStatus}</span>
+                </div>
+                <div class="step-time" id="time-${step.id}">
+                    Started: ${startedAt} \u2022 Ended: ${endedAt}
+                </div>
+                <div id="error-${step.id}" class="error-message" style="display: ${errorMessage ? 'block' : 'none'};">${errorMessage}</div>
+                <button class="toggle-logs" onclick="toggleLogs('${step.id}')">Show Logs</button>
+                <div id="logs-${step.id}" class="step-logs">${evaluatedRules || 'No logs available'}</div>
+            `;
+
+            return card;
+        }
+
+        function getStepStatus(stepId) {
+            const log = stepLogs.get(stepId);
+            if (log && log.status) {
+                return log.status;
+            }
+
+            if (execution.current_step_id === stepId && execution.status === 'in_progress') {
+                return 'in_progress';
+            }
+
+            if (execution.status === 'completed') {
+                return 'completed';
+            }
+            if (execution.status === 'failed') {
+                return 'failed';
+            }
+
+            return 'pending';
+        }
+
+        function getStepTime(stepId) {
+            // This would come from execution logs
+            return '';
+        }
+
+        function updateStepStatus(stepId, status) {
+            const stepCard = document.getElementById(`step-${stepId}`);
+            if (!stepCard) return;
+            
+            // Remove old status classes
+            stepCard.classList.remove('step-pending', 'step-in_progress', 'step-completed', 'step-failed');
+            stepCard.classList.add(`step-${status}`);
+            
+            const statusSpan = stepCard.querySelector('.step-status');
+            if (statusSpan) {
+                statusSpan.className = `step-status status-${status}`;
+                statusSpan.innerText = status;
+            }
+        }
+
+        function updateExecutionStatus(status) {
+            execution.status = status;
+            const statusEl = document.getElementById('executionStatus');
+            statusEl.className = `execution-status status-${status}`;
+            statusEl.innerText = status.replace('_', ' ');
+
+            const approveContainer = document.getElementById('approveContainer');
+            if (approveContainer) {
+                approveContainer.style.display = status === 'pending' ? 'block' : 'none';
+            }
+        }
+
+        function updateProgress() {
+            let completed = 0;
+            steps.forEach(step => {
+                const status = getStepStatus(step.id);
+                if (status === 'completed') completed++;
+            });
+            
+            const progress = steps.length === 0 ? 0 : (completed / steps.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        async function approveExecution() {
+            const btn = document.getElementById('approveBtn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerText = 'Approving...';
+
+            try {
+                const response = await fetch(`/executions/${executionId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: {} })
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const updated = await response.json();
+                updateExecutionStatus(updated.status);
+            } catch (err) {
+                alert('Failed to approve: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Approve';
+            }
+        }
+
+        function showStepError(stepId, error) {
+            const errorDiv = document.getElementById(`error-${stepId}`);
+            if (errorDiv) {
+                errorDiv.innerText = error;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        function toggleLogs(stepId) {
+            const logsDiv = document.getElementById(`logs-${stepId}`);
+            if (logsDiv) {
+                logsDiv.classList.toggle('visible');
+                const btn = logsDiv.previousElementSibling;
+                if (btn && btn.classList.contains('toggle-logs')) {
+                    btn.innerText = logsDiv.classList.contains('visible') ? 'Hide Logs' : 'Show Logs';
+                }
+            }
+        }
+
+        function startDurationTimer() {
+            if (!startTime) return;
+            
+            setInterval(() => {
+                if (execution.status === 'completed' || execution.status === 'failed') return;
+                
+                const now = new Date();
+                const diff = now - startTime;
+                const seconds = Math.floor(diff / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const hours = Math.floor(minutes / 60);
+                
+                let duration = '';
+                if (hours > 0) duration += `${hours}h `;
+                if (minutes > 0) duration += `${minutes % 60}m `;
+                duration += `${seconds % 60}s`;
+                
+                document.getElementById('duration').innerText = duration;
+            }, 1000);
+        }
+
+        function showError(message) {
+            alert('Error: ' + message);
+        }
+
+        // Ensure helper functions are accessible globally (helps when cached scripts are executed out of order)
+        window.updateProgress = updateProgress;
+        window.updateExecutionStatus = updateExecutionStatus;
+        window.updateStepStatus = updateStepStatus;
+    </script>
+</body>
+</html>
