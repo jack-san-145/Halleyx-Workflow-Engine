@@ -4,7 +4,7 @@ Halleyx is a simple workflow engine built with Go.
 
 The idea is to define workflows as a series of steps and let the system execute them automatically. Each step runs inside a Docker container, which keeps execution isolated and flexible.
 
-This project is mainly built to understand how real workflow systems work internally.
+This project reflects the architecture of real-world workflow engines, built to handle scalable execution, rule-based orchestration, and high-performance task processing.
 
 ---
 
