@@ -51,6 +51,26 @@ This gives:
 
 ---
 
+## High performance backend
+
+The backend is built using Golang, designed from the ground up for high concurrency and efficient resource usage.
+
+- Each user request is handled in a separate goroutine  
+- Extremely lightweight (consuming only a few KB of memory per routine)  
+- Non-blocking architecture ensures minimal latency  
+- Efficient CPU usage even under heavy load  
+
+Because of this architecture:
+
+- The system can handle thousands of concurrent users without degradation
+- Memory usage stays very low (KB level instead of MB per request)  
+- Performs reliably even on low-end infrastructure  
+- Scales well under high traffic  
+
+This makes the backend highly resilient, efficient, and capable of sustaining heavy traffic loads without performance bottlenecks.
+
+---
+
 ## Example: C Program Pipeline
 
 This workflow compiles and runs a C program.
@@ -208,7 +228,6 @@ http://localhost:8080
 - Postgres may take a few seconds to start  
 - Backend depends on DB connection  
 - Docker socket is used for running containers  
-- You can remove `version` field from docker-compose.yml  
 
 ---
 
